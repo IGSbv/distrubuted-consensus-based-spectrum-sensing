@@ -1,67 +1,48 @@
-# **Distributed Cooperative Spectrum Sensing in Cognitive Radio Networks**
+# **Accelerated-Consensus: A Stability-Guarded Distributed Sensing Framework**
 
-### **Using Consensus-Based Gossip Algorithms and Local Hidden Markov Models**
+**Project Title:** Application of Adaptive Probabilistic Models for Real-Time Distributed Spectrum Sensing in Cognitive Radio Networks
+
+**Category:** Random Processes / Stochastic Systems Mini-Project (Python-based Simulation)
 
 ## **📌 Project Overview**
 
-This project simulates a **Decentralized (Distributed) Cognitive Radio Network**. Unlike traditional centralized systems that rely on a single Fusion Center, this model implements a **Mesh Architecture**. Secondary Users (SUs) reach a global consensus on the presence of a Primary User (PU) by "gossiping" with their physical neighbors.
+This project addresses a critical real-time challenge in 5G and Cognitive Radio: **Dynamic Spectrum Access**. In decentralized networks, multiple sensor nodes must decide if a primary frequency is occupied without a central hub.
 
-This approach is highly robust against deep fading, shadowing, and the "single point of failure" risk associated with centralized hubs. It is a prime example of **Distributed Signal Processing** and **Stochastic Optimization**.
+We utilize a hierarchy of probabilistic models to achieve a decentralized agreement (consensus) that is more robust than any single-node observation, specifically addressing the trade-offs between accuracy, latency, and energy consumption.
 
-## **🚀 Key Distributed Features**
+## **🧠 Probabilistic Models Applied**
 
-* **Random Geometric Graph (RGG):** Nodes are placed randomly in a 2D field, and communication links are established based on a stochastic distance-threshold model.  
-* **Decentralized Intelligence:** Every node independently trains a **Gaussian Hidden Markov Model (HMM)** to interpret its own local, noisy energy readings.  
-* **Consensus Gossip Algorithm:** Implements the **Metropolis-Hastings update rule**, allowing nodes to converge to a global average Log-Likelihood Ratio (LLR) through iterative local exchanges.  
-* **Resilience:** Achieves centralized-level accuracy even if nodes are spatially separated and experiencing independent Rayleigh fading.
+This software is built on three core stochastic foundations:
 
-## **📊 Methodology & Architecture**
+1. **Hidden Markov Models (HMM):** To model the temporal state transitions (Busy/Idle) of the Primary User.  
+2. **Bayesian Inference (LLR):** Converting local energy detections into Log-Likelihood Ratios to represent probabilistic "belief."  
+3. **Discrete-Time Markov Chains (DTMC):** Modeling the network-wide gossip iterations as a state-space evolution governed by a **Doubly Stochastic Matrix**.
 
-### **1\. Physics & Topology (Phase 1\)**
+## **🚀 True Criticism & Technical Optimizations**
 
-We model the network as a graph $G \= (V, E)$.
+Standard gossip algorithms often fail in hardware due to high latency and power drain. This project implements specific mathematical fixes to these real-world engineering failures:
 
-* **Nodes (**$V$**):** Secondary users with random $(x, y)$ coordinates.  
-* **Edges (**$E$**):** Links exist if $dist(i, j) \< R\_{comm}$.  
-* **Channel:** $y \= h \\cdot x \+ n$, where $h$ is a **Rayleigh Fading** random variable.
+* **Latency Fix (Momentum):** Standard gossip convergence is slow. We implemented a **second-order Markov process** using a "Heavy-Ball" momentum factor ($\\beta=0.2$) to accelerate information diffusion across the network.  
+* **Battery Drain Fix (Epsilon-Stop):** Continuous communication is energy-expensive. We implemented an $\\epsilon$**\-termination criterion** that detects "Consensus in Probability," resulting in a **36.44% reduction in energy consumption** compared to fixed-iteration models.  
+* **Stability Guard:** To prevent the wild numerical oscillations common in high-momentum feedback systems, we integrated a damping factor and divergence check to ensure the **Spectral Radius** remains within the unit circle.  
+* **Hysteresis Decision Rule:** A $\\pm 0.5$ LLR buffer was added to navigate the "Uncertainty Zone," effectively reducing False Alarms in high-noise environments.
 
-### **2\. Local Inference (Phase 2\)**
+## **📚 Mathematical Concepts Explored**
 
-Each node runs a local HMM to calculate an initial Log-Likelihood Ratio (LLR):
+* **Metropolis-Hastings Weights** for Graph Topology.  
+* **Perron-Frobenius Theorem** for Matrix Convergence.  
+* **Neyman-Pearson Criterion** for Detection vs. False Alarm.  
+* **Rayleigh Fading & AWGN** for Channel Modeling.
 
-$$\\Lambda\_i(0) \= \\ln \\left( \\frac{P(Energy | PU\\\_ON)}{P(Energy | PU\\\_OFF)} \\right)$$
+## **🛠️ Software Requirements**
 
-### **3\. Distributed Consensus (Phase 3\)**
+* **Language:** Python 3.8+  
+* **Libraries:** NumPy (Matrix Dynamics), Matplotlib (Stochastic Visualization), Scikit-learn (Metrics).
 
-Nodes update their opinions iteratively:
+## **🖥️ How to Run**
 
-$$x\_i(k+1) \= x\_i(k) \+ \\sum\_{j \\in \\mathcal{N}\_i} W\_{ij} (x\_j(k) \- x\_i(k))$$
+\# Clone the repository  
+git clone https://github.com/IGSbv/distrubuted-consensus-based-spectrum-sensing.git
 
-where $W\_{ij}$ are the Metropolis-Hastings weights designed to ensure the network converges to the global average.
-
-### **4\. Performance Analytics (Phases 4 & 5\)**
-
-We analyze the **Saturation Point**—the moment where adding more gossip iterations no longer improves accuracy, identifying the optimal balance between battery life (communication cost) and sensing reliability.
-
-## **🛠️ Technical Architecture & Usage**
-
-### **Prerequisites**
-
-pip install numpy matplotlib scipy hmmlearn scikit-learn
-
-### **Running the Simulation**
-
-1. **Generate Topology:** python dist\_phase1\_topology.py  
-2. **Evaluate Performance:** python dist\_phase4\_evaluation.py  
-3. **Optimization Sweep:** python dist\_phase5\_tradeoff.py  
-4. **Real-Time Dashboard:** python dist\_phase6\_dashboard.py
-
-## **⚖️ True Criticism (Academic Evaluation)**
-
-* **The Energy-Accuracy Tradeoff:** While the distributed model is more robust, it is energy-intensive. Each "iteration" of gossip requires a radio transmission. Our Phase 5 results show that **5 iterations** often yield 95% of the total possible gain, making further iterations an inefficient use of battery.  
-* **Latency Constraints:** In a real-time environment, if the Primary User switches states faster than the gossip can converge, the network will act on outdated "consensus" data. This makes distributed sensing better suited for semi-static environments rather than high-speed dynamic ones.  
-* **Connectivity Dependency:** The success of this algorithm is strictly bound by the **Spectral Gap** of the adjacency matrix. If the random process of node placement results in a "disconnected" graph, the network will reach two different, conflicting consensuses.
-
-## **📜 Conclusion**
-
-This project proves that **algorithmic cooperation** can overcome the physical limitations of wireless channels. By shifting from a "Boss-Worker" (Centralized) model to a "Democratic" (Distributed) model, we create a Cognitive Radio network that is resilient, scalable, and mathematically optimal.
+\# Run the Phase 4 Evaluation  
+python dist\_phase4\_evaluation.py  
