@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # **Distributed Cooperative Spectrum Sensing in Cognitive Radio Networks**
 
 ### **Using Consensus-Based Gossip Algorithms and Local Hidden Markov Models**
@@ -66,8 +65,3 @@ pip install numpy matplotlib scipy hmmlearn scikit-learn
 ## **📜 Conclusion**
 
 This project proves that **algorithmic cooperation** can overcome the physical limitations of wireless channels. By shifting from a "Boss-Worker" (Centralized) model to a "Democratic" (Distributed) model, we create a Cognitive Radio network that is resilient, scalable, and mathematically optimal.
-
-**Tech Stack:** Python, NumPy, Matplotlib, Scikit-learn, HMMlearn.
-=======
-# distrubuted-consensus-based-spectrum-sensing
->>>>>>> d30f21d8423abcd2d03741c7acedc7badfbe4041
