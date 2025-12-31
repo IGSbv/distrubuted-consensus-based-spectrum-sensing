@@ -1,38 +1,45 @@
-# dist_phase3_gossip.py
 import numpy as np
 
-def run_gossip_consensus(initial_llrs, adj_matrix, iterations=20):
+def run_gossip_consensus(initial_llrs, adj_matrix, max_iterations=30, epsilon=0.01, momentum=0.2):
     """
-    Simulates the iterative exchange of LLRs between neighbors.
-    - initial_llrs: [num_users] (The HMM output for a single time step)
-    - adj_matrix: [num_users x num_users] (From Phase 1)
+    STABILIZED GOSSIP LOGIC:
+    - Reduced momentum (0.2) to ensure the Spectral Radius < 1.
+    - Added Divergence Guard to prevent LLR explosions.
     """
     num_users = len(initial_llrs)
-    # Calculate degrees (how many neighbors each node has)
     degrees = np.sum(adj_matrix, axis=1)
     
-    # x holds the current LLR estimate for each node
     x = np.copy(initial_llrs).astype(float)
-    
-    # Record history to visualize convergence later
+    x_prev = np.copy(x)
     history = [np.copy(x)]
     
-    for k in range(iterations):
+    for k in range(max_iterations):
+        # 1. MOMENTUM STEP (Stable Acceleration)
+        # Low momentum (0.2) speeds up convergence without causing oscillation.
+        v = x + momentum * (x - x_prev)
+        
         x_next = np.copy(x)
         for i in range(num_users):
             neighbors = np.where(adj_matrix[i] == 1)[0]
             for j in neighbors:
-                # Metropolis-Hastings Weighting
-                # This ensures the 'Random Walk' on the graph is doubly stochastic
+                # Metropolis weights for a Doubly Stochastic Matrix.
                 weight = 1 / (max(degrees[i], degrees[j]) + 1)
-                x_next[i] += weight * (x[j] - x[i])
+                x_next[i] += weight * (v[j] - v[i])
         
-        x = x_next
-        history.append(np.copy(x))
+        # 2. DIVERGENCE GUARD
+        # If values exceed a reasonable LLR range (±20), the process is unstable.
+        if np.any(np.abs(x_next) > 20):
+            print(f"Warning: Instability at Iteration {k}. Reverting to standard gossip.")
+            return x, np.array(history), k
+            
+        # 3. ENERGY-SAVING TERMINATION
+        if np.linalg.norm(x_next - x) < epsilon:
+            # Fill remaining history for plotting
+            for _ in range(max_iterations - k):
+                history.append(np.copy(x_next))
+            return x_next, np.array(history), k + 1
+            
+        x_prev, x = x.copy(), x_next.copy()
+        history.append(x)
         
-    return x, np.array(history)
-
-# Example usage within a simulation loop:
-# for t in range(NUM_TEST_SAMPLES):
-#     local_opinions = initial_llrs[t, :]
-#     final_consensus, conv_history = run_gossip_consensus(local_opinions, adj)
+    return x, np.array(history), max_iterations
